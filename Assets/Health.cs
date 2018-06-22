@@ -12,8 +12,16 @@ public class Health : NetworkBehaviour {
 	[SyncVar(hook = "OnChangeHealth")]
 	public int currentHealth = maxHealth;
 
+	private NetworkStartPosition[] spawnPositions;
+
 	void Start() {
-		OnChangeHealth(currentHealth);
+		if (isServer) {
+			OnChangeHealth(currentHealth);
+		}
+		
+		if (isLocalPlayer) {
+			spawnPositions = FindObjectsOfType<NetworkStartPosition>();
+		}
 	}
 
 	public void TakeDamage(int amount) {
@@ -38,7 +46,11 @@ public class Health : NetworkBehaviour {
 	[ClientRpc]
 	void RpcRespawn() {
 		if (isLocalPlayer) {
-			transform.position = Vector3.zero;
+			if (spawnPositions != null && spawnPositions.Length > 0) {
+				transform.position = spawnPositions[Random.Range(0, spawnPositions.Length)].transform.position;
+			} else {
+				transform.position = Vector3.zero;
+			}
 		}
 	}
 
